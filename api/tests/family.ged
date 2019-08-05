@@ -1,0 +1,98 @@
+0 @I1@ INDI
+1 NAME Father Figure /FamilyName/
+1 SEX M
+1 BIRT
+2 DATE 1 JUN 1950
+2 PLAC Little house on the prarie
+1 BAPM
+2 PLAC Little church on the prarie
+1 OCCU Cowboy
+1 FAMS @F1@
+1 FAMC @F2@
+0 @I2@ INDI
+1 NAME Mother Figure /MaidenName/
+1 SEX F
+1 BIRT
+2 DATE 01 SEP 1953
+2 PLAC Somewhere nice.
+1 BAPM
+2 PLAC A quaint chapel.
+1 OCCU Nurse
+1 FAMS @F1@
+1 FAMC @F3@
+0 @I3@ INDI
+1 NAME Eldest son /FamilyName/
+1 SEX M
+1 BIRT
+2 DATE 04 AUG 1975
+2 PLAC New Zealand
+1 FAMS @F788@
+1 FAMC @F1@
+1 CHAN
+2 DATE  6 JAN 2017
+0 @I4@ INDI
+1 NAME Middle Child /FamilyName/
+1 SEX M
+1 BIRT
+2 DATE 09 JAN 1980
+2 PLAC New Zealand
+1 FAMS @F785@
+1 FAMC @F1@
+1 CHAN
+2 DATE  6 FEB 2003
+0 @I5@ INDI
+1 NAME Daughter /FamilyName/
+1 SEX F
+1 BIRT
+2 DATE 20 JUL 1985
+2 PLAC New Zealand
+1 FAMS @F786@
+1 FAMC @F1@
+1 CHAN
+2 DATE  6 FEB 2003
+0 @I6@ INDI
+1 NAME Grandfather /FamilyName/
+1 SEX M
+1 BIRT
+2 DATE 20 JUL 1920
+2 PLAC Ye olde town
+1 OCCU Postman
+1 FAMS @F2@
+0 @I7@ INDI
+1 NAME Grandma /GrandMaidenName/
+1 SEX F
+1 BIRT
+2 DATE 25 NOV 1918
+2 PLAC Smalltownsville
+1 DEAT
+2 DATE 27 MAR 1959
+2 PLAC Waimahaka
+1 BURI
+2 PLAC Kaitangata
+1 OCCU Telephone operator/mother
+1 SOUR @S1@
+2 PAGE c1
+1 FAMS @F2@
+1 FAMC @F5@
+1 CHAN
+2 DATE  6 FEB 2003
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 CHIL @I3@
+1 CHIL @I4@
+1 CHIL @I5@
+1 MARR
+2 DATE 02 DEC 1970
+2 PLAC That quaint chapel.
+1 SOUR @S1@
+2 PAGE p4
+0 @F2@ FAM
+1 HUSB @I6@
+1 WIFE @I7@
+1 CHIL @I1@
+1 MARR
+2 DATE 20 MAR 1948
+2 PLAC A less quaint chapel
+1 SOUR @S1@
+2 PAGE p6
