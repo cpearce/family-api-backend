@@ -1,7 +1,10 @@
 from rest_framework import generics
+from rest_framework import serializers
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import serializers
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from api.models import Individual, Family
 from api.serializers import IndividualSerializer, FamilySerializer, VerboseIndividual, VerboseIndividualSerializer
@@ -50,6 +53,12 @@ def verbose_individual_detail(request, pk):
     parents = individual.parents()
     serializer = VerboseIndividualSerializer(
         VerboseIndividual(individual, families, parents))
-    # if not serializer.is_valid():
-    #     return Response(status=status.HTTP_404_NOT_FOUND)
     return Response(serializer.data)
+
+@api_view(['POST'])
+def logout(request):
+    if request.method != 'POST':
+        # TODO: Verify whether this is actually needed.
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    request.user.auth_token.delete()
+    return Response(status=status.HTTP_200_OK)
