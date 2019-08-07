@@ -20,12 +20,14 @@ class FamilySerializer(serializers.ModelSerializer):
 class VerboseFamily:
     def __init__(self, individual, family):
         others = [p for p in family.partners.all() if p.id != individual.id]
+        self.id = family.id
         self.spouse = others[0] if len(others) > 0 else None
         self.married_date = family.married_date
         self.married_location = family.married_location
         self.children = family.children.all()
 
 class VerboseFamilySerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
     spouse = IndividualSerializer()
     married_date = serializers.DateField(required=False)
     married_location = serializers.CharField(max_length=100, required=False)

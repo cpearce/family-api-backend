@@ -79,6 +79,8 @@ class Individual(models.Model):
 
     def parents(self):
         # The partners of the family which this individual was a child in.
+        if not self.child_in_family:
+            return []
         return [
             p for p in self.child_in_family.partners.all()
         ]
