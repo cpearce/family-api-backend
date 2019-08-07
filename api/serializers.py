@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Individual, Family
+from api.models import Individual, Family, birth_date_or_min_year, married_date_or_min_year
 
 class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,7 +24,7 @@ class VerboseFamily:
         self.spouse = others[0] if len(others) > 0 else None
         self.married_date = family.married_date
         self.married_location = family.married_location
-        self.children = family.children.all()
+        self.children = list(sorted(family.children.all(), key=birth_date_or_min_year))
 
 class VerboseFamilySerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
@@ -39,8 +39,9 @@ class VerboseFamilySerializer(serializers.Serializer):
 class VerboseIndividual:
     def __init__(self, individual, families, parents):
         self.individual = individual
-        self.parents = parents
-        self.families = [VerboseFamily(individual, f) for f in families]
+        self.parents = sorted(parents, key=birth_date_or_min_year)
+        sorted_families = sorted(families, key=married_date_or_min_year)
+        self.families = [VerboseFamily(individual, f) for f in sorted_families]
 
 class VerboseIndividualSerializer(serializers.Serializer):
     individual = IndividualSerializer()

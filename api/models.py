@@ -1,23 +1,23 @@
 from django.db import models
 from datetime import date
 
-# def _birth_date_or_min_year(individual):
-#     """
-#     Returns an individual's birth date, or if that's unknown,
-#     the minimum representable date.
-#     """
-#     if individual.birth_date:
-#         return individual.birth_date
-#     return date.min
+def birth_date_or_min_year(individual):
+    """
+    Returns an individual's birth date, or if that's unknown,
+    the minimum representable date.
+    """
+    if individual.birth_date:
+        return individual.birth_date
+    return date.min
 
-# def _married_date_or_min_year(partnership):
-#     """
-#     Returns a partnership's married date, or if that's unknown,
-#     the minimum representable date.
-#     """
-#     if partnership.married_date:
-#         return partnership.married_date
-#     return date.min
+def married_date_or_min_year(partnership):
+    """
+    Returns a partnership's married date, or if that's unknown,
+    the minimum representable date.
+    """
+    if partnership.married_date:
+        return partnership.married_date
+    return date.min
 
 class Individual(models.Model):
     first_names = models.CharField(max_length=50)
@@ -88,12 +88,12 @@ class Individual(models.Model):
     def children(self):
         # For each family in which this individual is a partner...
         # Append the individuals which are chilren in this family...
-        return [
+        return sorted([
             i for family in self.partner_in_families.all()
                 for i in Individual.objects.filter(
                     child_in_family=family
                 )
-        ]
+        ], key=_birth_date_or_min_year)
 
     def spouses(self):
         return [
