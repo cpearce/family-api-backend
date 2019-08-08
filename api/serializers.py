@@ -2,6 +2,7 @@ from rest_framework import serializers
 from api.models import Individual, Family, birth_date_or_min_year, married_date_or_min_year
 
 class IndividualSerializer(serializers.ModelSerializer):
+    partner_in_families = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         fields = '__all__'
         model = Individual
