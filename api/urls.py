@@ -13,4 +13,5 @@ urlpatterns = [
     path('families/of-individual/<int:pk>/', views.list_family_of_individual),
     path('login/', obtain_auth_token),
     path('logout/', views.logout),
+    path('account/', views.account_details),
 ]

@@ -7,7 +7,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.models import Individual, Family
-from api.serializers import IndividualSerializer, FamilySerializer, VerboseIndividual, VerboseIndividualSerializer
+from api.serializers import IndividualSerializer
+from api.serializers import FamilySerializer
+from api.serializers import VerboseIndividual, VerboseIndividualSerializer
+from api.serializers import AccountDetail, AccountDetailSerializer
 
 # Individual
 class ListIndividual(generics.ListCreateAPIView):
@@ -26,6 +29,15 @@ class ListFamily(generics.ListCreateAPIView):
 class DetailFamily(generics.RetrieveUpdateDestroyAPIView):
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
+
+@api_view(['GET'])
+def account_details(request):
+    if request.method != 'GET':
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    if request.user is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    serializer = AccountDetailSerializer(AccountDetail(request.user))
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def list_family_of_individual(request, pk):
