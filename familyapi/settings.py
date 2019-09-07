@@ -24,10 +24,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 if "SECRET_KEY" not in os.environ:
     # Local development environment.
-    SECRET_KEY = '9a=aik8)4%#4c0_ou9rg!@haadjn8q&lj5idjl*ci4_lz!rtk2'
+    SECRET_KEY = r'9a=aik8)4%#4c0_ou9rg!@haadjn8q&lj5idjl*ci4_lz!rtk2'
+    # SECURITY WARNING: don't run with debug turned on in production!
+    DEBUG = True
+    # SECURITY WARNING: don't allow requests from all origins in production!
+    CORS_ORIGIN_ALLOW_ALL = True
+else:
+    DEBUG = False
+    CORS_ORIGIN_WHITELIST = [
+        "https://ancestry.pearce.org.nz",
+    ]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -151,8 +158,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 }
-
-CORS_ORIGIN_ALLOW_ALL = True
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = "/static/"
