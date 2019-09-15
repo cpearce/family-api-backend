@@ -43,6 +43,17 @@ class FamilySerializer(serializers.ModelSerializer):
         )
         model = Family
 
+    @staticmethod
+    def init_queryset(queryset):
+        """ Perform necessary eager loading of data. """
+        # See the following for details of what's going on here:
+        # http://ses4j.github.io/2015/11/23/optimizing-slow-django-rest-framework-performance/
+        queryset = queryset.prefetch_related(
+            'partners', 'children',
+        )
+        return queryset
+
+
 class VerboseFamily:
     def __init__(self, individual, family):
         others = [p for p in family.partners.all() if p.id != individual.id]

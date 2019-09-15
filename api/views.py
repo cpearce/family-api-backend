@@ -23,7 +23,7 @@ class DetailIndividual(generics.RetrieveUpdateDestroyAPIView):
 
 # Family
 class ListFamily(generics.ListCreateAPIView):
-    queryset = Family.objects.all()
+    queryset = FamilySerializer.init_queryset(Family.objects.all())
     serializer_class = FamilySerializer
 
 class DetailFamily(generics.RetrieveUpdateDestroyAPIView):
