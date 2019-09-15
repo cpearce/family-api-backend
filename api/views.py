@@ -14,7 +14,7 @@ from api.serializers import AccountDetail, AccountDetailSerializer
 
 # Individual
 class ListIndividual(generics.ListCreateAPIView):
-    queryset = Individual.objects.all()
+    queryset = IndividualSerializer.init_queryset(Individual.objects.all())
     serializer_class = IndividualSerializer
 
 class DetailIndividual(generics.RetrieveUpdateDestroyAPIView):

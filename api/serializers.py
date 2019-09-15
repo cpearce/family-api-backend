@@ -4,8 +4,33 @@ from api.models import Individual, Family, birth_date_or_min_year, married_date_
 class IndividualSerializer(serializers.ModelSerializer):
     partner_in_families = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
-        fields = '__all__'
+        fields = (
+            'id',
+            'first_names',
+            'last_name',
+            'sex',
+            'birth_date',
+            'birth_location',
+            'death_date',
+            'death_location',
+            'buried_date',
+            'buried_location',
+            'occupation',
+            'partner_in_families',
+            'child_in_family',
+        )
         model = Individual
+
+    @staticmethod
+    def init_queryset(queryset):
+        """ Perform necessary eager loading of data. """
+        # See the following for details of what's going on here:
+        # http://ses4j.github.io/2015/11/23/optimizing-slow-django-rest-framework-performance/
+        queryset = queryset.select_related('child_in_family')
+        queryset = queryset.prefetch_related(
+            'partner_in_families'
+        )
+        return queryset
 
 class FamilySerializer(serializers.ModelSerializer):
     class Meta:
