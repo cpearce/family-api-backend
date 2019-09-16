@@ -20,14 +20,14 @@ def married_date_or_min_year(partnership):
     return date.min
 
 class Individual(models.Model):
-    first_names = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    first_names = models.CharField(max_length=50, blank=True)
+    last_name = models.CharField(max_length=50, blank=True)
 
     SEX_CHOICES = [("M", "Male"), ("F", "Female"), ("?", "Unknown")]
 
     # TODO: This shouldn't be required; the sex of a child in the distant past
     # may be unknown.
-    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True)
 
     birth_date = models.DateField('birth date', null=True, blank=True)
     birth_location = models.CharField(max_length=100, blank=True)
