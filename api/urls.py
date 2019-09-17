@@ -14,4 +14,5 @@ urlpatterns = [
     path('individuals/<int:pk>/verbose', views.verbose_individual_detail),
     path('login/', obtain_auth_token),
     path('logout/', views.logout),
+    path('search-individuals/<str:pattern>', views.search_individuals),
 ]

@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.db.models import CharField, Value
+from django.db.models.functions import Concat
+
 from api.models import Individual, Family
 from api.serializers import IndividualSerializer
 from api.serializers import FamilySerializer
@@ -74,3 +77,14 @@ def logout(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
     request.user.auth_token.delete()
     return Response(status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def search_individuals(request, pattern):
+    individuals = Individual.objects.annotate(
+        full_name=Concat(
+            'first_names', Value(' '), 'last_name',
+            output_field=CharField(max_length=100)
+        )
+    ).filter(full_name__icontains=pattern)
+    serializer = IndividualSerializer(instance=individuals, many=True)
+    return Response(serializer.data)
