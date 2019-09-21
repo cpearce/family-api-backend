@@ -55,11 +55,19 @@ class Individual(models.Model):
             s += l
         return s
 
+    # firstnames lastname
     def full_name(self):
-        return " ".join([self.first_names, self.last_name])
+        return " ".join(filter(None, [self.first_names, self.last_name]))
+
+    # lastname, firstnames
+    def formal_name(self):
+        return ", ".join(filter(None, [self.last_name, self.first_names]))
 
     def __str__(self):
-        return " ".join([self.full_name(), self.lifetime()])
+        # Return $name + $lifetime.
+        # Note: the filter(None...) filters out empty strings, so we don't end up
+        # joining " " with "" and getting an extra space in the full name.
+        return " ".join(filter(None, [self.formal_name(), self.lifetime()]))
 
     def lifetime(self):
         if self.birth_date is None and self.death_date is None:
@@ -108,3 +116,22 @@ class Family(models.Model):
 
     partners = models.ManyToManyField(
         Individual, related_name="partner_in_families", symmetrical=False)
+
+    # Computed field; the name of the partners in the field.
+    # Stored in DB to make retrieval cheap.
+    name = models.CharField(max_length=210, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # We need to have a valid ID before calling the `partners()` function
+            # below, so double save here. This hits when creating new instances.
+            super(Family, self).save(*args, **kwargs)
+        # Sort list first by last name, second by sex with males first.
+        partners_list = list(self.partners.all());
+        partners_list.sort(key=lambda i: i.last_name)
+        partners_list.sort(key=lambda i: i.sex, reverse=True)
+        partners_list = map(str, partners_list)
+        self.name = " & ".join(partners_list)
+        # Note: Don't pass args/kwargs here, else we'll try to re-create a new
+        # instance, which will fail!
+        super().save()

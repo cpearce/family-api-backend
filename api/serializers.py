@@ -36,11 +36,13 @@ class FamilySerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             'id',
+            'name',
             'married_date',
             'married_location',
             'partners',
             'children',
         )
+        read_only_fields = ['name']
         model = Family
 
     @staticmethod
@@ -79,11 +81,13 @@ class VerboseIndividual:
         self.parents = sorted(parents, key=birth_date_or_min_year)
         sorted_families = sorted(families, key=married_date_or_min_year)
         self.families = [VerboseFamily(individual, f) for f in sorted_families]
+        self.parents_family = Family.objects.get(pk=individual.child_in_family.pk) if individual.child_in_family else None
 
 class VerboseIndividualSerializer(serializers.Serializer):
     individual = IndividualSerializer()
     families = VerboseFamilySerializer(many=True, required=False)
     parents = IndividualSerializer(many=True, required=False)
+    parents_family = FamilySerializer(required=False)
 
 def has_write_access(user):
     perms = [
