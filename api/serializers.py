@@ -55,7 +55,6 @@ class FamilySerializer(serializers.ModelSerializer):
         )
         return queryset
 
-
 class VerboseFamily:
     def __init__(self, individual, family):
         others = [p for p in family.partners.all() if p.id != individual.id]
@@ -103,3 +102,45 @@ class AccountDetail:
 
 class AccountDetailSerializer(serializers.Serializer):
     can_edit = serializers.BooleanField(read_only=True)
+
+class BasicIndividualSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    first_names = serializers.CharField(max_length=50, required=False)
+    last_name = serializers.CharField(max_length=50, required=False)
+    birth_date = serializers.DateField(required=False)
+    death_date = serializers.DateField(required=False)
+
+class BasicFamilySerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    spouse = BasicIndividualSerializer(required=False)
+    children = serializers.ListField(child=serializers.IntegerField())
+
+class BasicIndividualAndFamiliesSerializer(serializers.Serializer):
+    individual = BasicIndividualSerializer(required=True)
+    families = BasicFamilySerializer(required=False, many=True)
+
+class BasicFamily:
+    def __init__(self, individual, family):
+        self.id = family.id
+        partners = [i for i in family.partners.all() if i != individual]
+        self.spouse = partners[0] if partners else None
+        self.children = [
+            child.id
+            for child in family.children.all()
+        ]
+
+class BasicIndividual:
+    def __init__(self, individual):
+        self.id = individual.id
+        self.first_names = individual.first_names
+        self.last_name = individual.last_name
+        self.birth_date = individual.birth_date
+        self.death_date = individual.death_date
+
+class BasicIndividualAndFamilies:
+    def __init__(self, individual):
+        self.individual = BasicIndividual(individual)
+        self.families = [
+            BasicFamily(individual, family)
+            for family in individual.partner_in_families.all()
+        ]

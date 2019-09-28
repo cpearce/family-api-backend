@@ -14,6 +14,7 @@ from api.serializers import IndividualSerializer
 from api.serializers import FamilySerializer
 from api.serializers import VerboseIndividual, VerboseIndividualSerializer
 from api.serializers import AccountDetail, AccountDetailSerializer
+from api.serializers import BasicIndividualAndFamilies, BasicIndividualAndFamiliesSerializer
 
 # Individual
 class ListIndividual(generics.ListCreateAPIView):
@@ -93,4 +94,22 @@ def search_individuals(request, pattern):
 def search_families(request, pattern):
     families = Family.objects.filter(name__icontains=pattern)
     serializer = FamilySerializer(instance=families, many=True)
+    return Response(serializer.data)
+
+def populate_descendants(individual, individuals):
+    families = individual.partner_in_families.all()
+    individuals.append(BasicIndividualAndFamilies(individual))
+    for family in families:
+        for child in family.children.all():
+            populate_descendants(child, individuals)
+
+@api_view(['GET'])
+def individual_desendants(request, pk):
+    try:
+        individual = Individual.objects.get(pk=pk)
+    except Individual.DoesNotExist:
+        raise Http404("Individual does not exist")
+    individuals = []
+    populate_descendants(individual, individuals)
+    serializer = BasicIndividualAndFamiliesSerializer(instance=individuals, many=True)
     return Response(serializer.data)
