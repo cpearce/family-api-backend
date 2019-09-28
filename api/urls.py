@@ -13,6 +13,7 @@ urlpatterns = [
     path('individuals/', views.ListIndividual.as_view()),
     path('individuals/<int:pk>/', views.DetailIndividual.as_view()),
     path('individuals/<int:pk>/verbose', views.verbose_individual_detail),
+    path('individuals/<int:pk>/ancestors', views.individual_ancestors),
     path('individuals/<int:pk>/descendants', views.individual_desendants),
     path('login/', obtain_auth_token),
     path('logout/', views.logout),

@@ -15,6 +15,7 @@ from api.serializers import FamilySerializer
 from api.serializers import VerboseIndividual, VerboseIndividualSerializer
 from api.serializers import AccountDetail, AccountDetailSerializer
 from api.serializers import BasicIndividualAndFamilies, BasicIndividualAndFamiliesSerializer
+from api.serializers import BasicIndividualWithParents, BasicIndividualWithParentsSerializer
 
 # Individual
 class ListIndividual(generics.ListCreateAPIView):
@@ -115,4 +116,20 @@ def individual_desendants(request, pk):
     individuals = []
     populate_descendants(individual, individuals)
     serializer = BasicIndividualAndFamiliesSerializer(instance=individuals, many=True)
+    return Response(serializer.data)
+
+def populate_ancestors(individual, individuals):
+    individuals.append(BasicIndividualWithParents(individual))
+    for parent in individual.parents():
+        populate_ancestors(parent, individuals)
+
+@api_view(['GET'])
+def individual_ancestors(request, pk):
+    try:
+        individual = Individual.objects.get(pk=pk)
+    except Individual.DoesNotExist:
+        raise Http404("Individual does not exist")
+    individuals = []
+    populate_ancestors(individual, individuals)
+    serializer = BasicIndividualWithParentsSerializer(instance=individuals, many=True)
     return Response(serializer.data)

@@ -119,6 +119,14 @@ class BasicIndividualAndFamiliesSerializer(serializers.Serializer):
     individual = BasicIndividualSerializer(required=True)
     families = BasicFamilySerializer(required=False, many=True)
 
+class BasicIndividualWithParentsSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    first_names = serializers.CharField(max_length=50, required=False)
+    last_name = serializers.CharField(max_length=50, required=False)
+    birth_date = serializers.DateField(required=False)
+    death_date = serializers.DateField(required=False)
+    parents = serializers.ListField(child=serializers.IntegerField())
+
 class BasicFamily:
     def __init__(self, individual, family):
         self.id = family.id
@@ -144,3 +152,12 @@ class BasicIndividualAndFamilies:
             BasicFamily(individual, family)
             for family in individual.partner_in_families.all()
         ]
+
+class BasicIndividualWithParents:
+    def __init__(self, individual):
+        self.id = individual.id
+        self.first_names = individual.first_names
+        self.last_name = individual.last_name
+        self.birth_date = individual.birth_date
+        self.death_date = individual.death_date
+        self.parents = [p.id for p in individual.parents()]
