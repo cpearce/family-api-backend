@@ -94,7 +94,8 @@ def search_individuals(request, pattern):
 
 @api_view(['GET'])
 def search_families(request, pattern):
-    families = Family.objects.filter(name__icontains=pattern)
+    families = list(Family.objects.filter(name__icontains=pattern))
+    families.sort(key=lambda f: f.name)
     serializer = FamilySerializer(instance=families, many=True)
     return Response(serializer.data)
 
