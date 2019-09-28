@@ -81,12 +81,14 @@ def logout(request):
 
 @api_view(['GET'])
 def search_individuals(request, pattern):
-    individuals = Individual.objects.annotate(
+    individuals = list(Individual.objects.annotate(
         full_name=Concat(
             'first_names', Value(' '), 'last_name',
             output_field=CharField(max_length=100)
         )
-    ).filter(full_name__icontains=pattern)
+    ).filter(full_name__icontains=pattern))
+    individuals.sort(key=lambda i: i.last_name)
+    individuals.sort(key=lambda i: i.first_names)
     serializer = IndividualSerializer(instance=individuals, many=True)
     return Response(serializer.data)
 
