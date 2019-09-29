@@ -38,10 +38,15 @@ class Individual(models.Model):
     buried_date = models.DateField('buried date', null=True, blank=True)
     buried_location = models.CharField(max_length=100, blank=True)
 
+    baptism_date = models.DateField('baptism date', null=True, blank=True)
+    baptism_location = models.CharField(max_length=100, blank=True)
+
     occupation = models.CharField(max_length=100, blank=True)
 
     child_in_family = models.ForeignKey(
         "Family", on_delete=models.CASCADE, related_name="children", null=True, blank=True)
+
+    note = models.TextField(blank=True, null=True)
 
     def reversed_str(self):
         s = self.last_name
@@ -120,6 +125,8 @@ class Family(models.Model):
     # Computed field; the name of the partners in the field.
     # Stored in DB to make retrieval cheap.
     name = models.CharField(max_length=210, blank=True)
+
+    note = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.id:

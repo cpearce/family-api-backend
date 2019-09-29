@@ -15,9 +15,12 @@ class IndividualSerializer(serializers.ModelSerializer):
             'death_location',
             'buried_date',
             'buried_location',
+            'baptism_date',
+            'baptism_location',
             'occupation',
             'partner_in_families',
             'child_in_family',
+            'note',
         )
         model = Individual
 
@@ -41,6 +44,7 @@ class FamilySerializer(serializers.ModelSerializer):
             'married_location',
             'partners',
             'children',
+            'note',
         )
         read_only_fields = ['name']
         model = Family
