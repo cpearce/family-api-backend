@@ -103,20 +103,12 @@ class VerboseIndividualSerializer(serializers.Serializer):
     parents = IndividualSerializer(many=True, required=False)
     parents_family = FamilySerializer(required=False)
 
-def has_write_access(user):
-    perms = [
-        'core.change_individual', 'core.change_child', 'core.change_family',
-        'core.add_individual', 'core.add_child', 'core.add_family',
-        'core.delete_individual', 'core.delete_child', 'core.delete_family'
-    ]
-    return all(map(lambda p: user.has_perm(p), perms))
-
 class AccountDetail:
     def __init__(self, user):
-        self.can_edit = has_write_access(user)
+        self.username = user.username
 
 class AccountDetailSerializer(serializers.Serializer):
-    can_edit = serializers.BooleanField(read_only=True)
+    username = serializers.CharField(max_length=200, read_only=True)
 
 class BasicIndividualSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
