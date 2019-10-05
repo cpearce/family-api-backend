@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import date
+from django.contrib.auth.models import User
 
 def birth_date_or_min_year(individual):
     """
@@ -47,6 +48,8 @@ class Individual(models.Model):
         "Family", on_delete=models.CASCADE, related_name="children", null=True, blank=True)
 
     note = models.TextField(blank=True, null=True)
+
+    owner = models.ForeignKey('auth.User', related_name='individuals', null=True, on_delete=models.SET_NULL)
 
     def reversed_str(self):
         s = self.last_name
@@ -127,6 +130,8 @@ class Family(models.Model):
     name = models.CharField(max_length=210, blank=True)
 
     note = models.TextField(blank=True, null=True)
+
+    owner = models.ForeignKey('auth.User', related_name='families', null=True, on_delete=models.SET_NULL)
 
     def save(self, *args, **kwargs):
         if not self.id:

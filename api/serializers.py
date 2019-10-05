@@ -1,8 +1,15 @@
 from rest_framework import serializers
 from api.models import Individual, Family, birth_date_or_min_year, married_date_or_min_year
+from django.contrib.auth.models import User
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
 
 class IndividualSerializer(serializers.ModelSerializer):
     partner_in_families = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    owner = serializers.ReadOnlyField(source='owner.username')
     class Meta:
         fields = (
             'id',
@@ -21,6 +28,7 @@ class IndividualSerializer(serializers.ModelSerializer):
             'partner_in_families',
             'child_in_family',
             'note',
+            'owner',
         )
         model = Individual
 
@@ -36,6 +44,8 @@ class IndividualSerializer(serializers.ModelSerializer):
         return queryset
 
 class FamilySerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
     class Meta:
         fields = (
             'id',
@@ -45,6 +55,7 @@ class FamilySerializer(serializers.ModelSerializer):
             'partners',
             'children',
             'note',
+            'owner',
         )
         read_only_fields = ['name']
         model = Family

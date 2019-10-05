@@ -2,6 +2,7 @@ from rest_framework import generics
 from rest_framework import serializers
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,6 +11,7 @@ from django.db.models import CharField, Value
 from django.db.models.functions import Concat
 
 from api.models import Individual, Family
+from api.permissions import IsOwnerOrReadOnlyOrStaff
 from api.serializers import IndividualSerializer
 from api.serializers import FamilySerializer
 from api.serializers import VerboseIndividual, VerboseIndividualSerializer
@@ -21,19 +23,31 @@ from api.serializers import BasicIndividualWithParents, BasicIndividualWithParen
 class ListIndividual(generics.ListCreateAPIView):
     queryset = IndividualSerializer.init_queryset(Individual.objects.all())
     serializer_class = IndividualSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnlyOrStaff]
+
+    def perform_create(self, serializer):
+        print("ListIndividual.perform_create user={}".format(self.request.user))
+        serializer.save(owner=self.request.user)
 
 class DetailIndividual(generics.RetrieveUpdateDestroyAPIView):
     queryset = Individual.objects.all()
     serializer_class = IndividualSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnlyOrStaff]
 
 # Family
 class ListFamily(generics.ListCreateAPIView):
     queryset = FamilySerializer.init_queryset(Family.objects.all())
     serializer_class = FamilySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnlyOrStaff]
+
+    def perform_create(self, serializer):
+        print("ListFamily.perform_create user={}".format(self.request.user))
+        serializer.save(owner=self.request.user)
 
 class DetailFamily(generics.RetrieveUpdateDestroyAPIView):
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnlyOrStaff]
 
 @api_view(['GET'])
 def account_details(request):
@@ -98,6 +112,7 @@ def search_families(request, pattern):
     families = list(Family.objects.filter(name__icontains=pattern))
     families.sort(key=lambda f: f.name)
     serializer = FamilySerializer(instance=families, many=True)
+    print("search_families {}".format(request.user))
     return Response(serializer.data)
 
 def populate_descendants(individual, individuals):
