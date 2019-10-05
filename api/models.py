@@ -109,7 +109,7 @@ class Individual(models.Model):
                 for i in Individual.objects.filter(
                     child_in_family=family
                 )
-        ], key=_birth_date_or_min_year)
+        ], key=birth_date_or_min_year)
 
     def spouses(self):
         return [

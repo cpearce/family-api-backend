@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from api.models import Individual, Family, birth_date_or_min_year, married_date_or_min_year
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -106,9 +106,13 @@ class VerboseIndividualSerializer(serializers.Serializer):
 class AccountDetail:
     def __init__(self, user):
         self.username = user.username
+        self.is_staff = user.is_staff
+        self.is_editor = Group.objects.get(name='editors') in user.groups.all()
 
 class AccountDetailSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=200, read_only=True)
+    is_staff = serializers.BooleanField(read_only=True)
+    is_editor = serializers.BooleanField(read_only=True)
 
 class BasicIndividualSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)

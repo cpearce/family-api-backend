@@ -11,7 +11,7 @@ from django.db.models import CharField, Value
 from django.db.models.functions import Concat
 
 from api.models import Individual, Family
-from api.permissions import IsOwnerOrReadOnlyOrStaff
+from api.permissions import IsReadOnlyOrCanEdit
 from api.serializers import IndividualSerializer
 from api.serializers import FamilySerializer
 from api.serializers import VerboseIndividual, VerboseIndividualSerializer
@@ -23,7 +23,7 @@ from api.serializers import BasicIndividualWithParents, BasicIndividualWithParen
 class ListIndividual(generics.ListCreateAPIView):
     queryset = IndividualSerializer.init_queryset(Individual.objects.all())
     serializer_class = IndividualSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnlyOrStaff]
+    permission_classes = [permissions.IsAuthenticated, IsReadOnlyOrCanEdit]
 
     def perform_create(self, serializer):
         print("ListIndividual.perform_create user={}".format(self.request.user))
@@ -32,22 +32,21 @@ class ListIndividual(generics.ListCreateAPIView):
 class DetailIndividual(generics.RetrieveUpdateDestroyAPIView):
     queryset = Individual.objects.all()
     serializer_class = IndividualSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnlyOrStaff]
+    permission_classes = [permissions.IsAuthenticated, IsReadOnlyOrCanEdit]
 
 # Family
 class ListFamily(generics.ListCreateAPIView):
     queryset = FamilySerializer.init_queryset(Family.objects.all())
     serializer_class = FamilySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnlyOrStaff]
+    permission_classes = [permissions.IsAuthenticated, IsReadOnlyOrCanEdit]
 
     def perform_create(self, serializer):
-        print("ListFamily.perform_create user={}".format(self.request.user))
         serializer.save(owner=self.request.user)
 
 class DetailFamily(generics.RetrieveUpdateDestroyAPIView):
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnlyOrStaff]
+    permission_classes = [permissions.IsAuthenticated, IsReadOnlyOrCanEdit]
 
 @api_view(['GET'])
 def account_details(request):
