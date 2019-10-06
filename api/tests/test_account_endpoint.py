@@ -5,11 +5,13 @@ from django.contrib.auth.models import User, Group
 from rest_framework.test import APIClient
 from api.models import Individual, Family
 
+
 class AccountEndpointTests(TestCase):
 
     def test_account_endpoint(self):
         # Verify that user can't edit entries if they're not in the 'editors' group.
-        alice = User.objects.create_user('alice', password='test-password')
+        alice = User.objects.create_user('alice', password='test-password',
+            first_name='alice', last_name='alexander', email='alice@example.com')
         self.assertEqual(alice.is_staff, False)
         self.assertEqual(alice.groups.count(), 0)
 
@@ -21,6 +23,9 @@ class AccountEndpointTests(TestCase):
         self.assertEqual(response.data['username'], 'alice')
         self.assertEqual(response.data['is_staff'], False)
         self.assertEqual(response.data['is_editor'], False)
+        self.assertEqual(response.data['first_name'], 'alice')
+        self.assertEqual(response.data['last_name'], 'alexander')
+        self.assertEqual(response.data['email'], 'alice@example.com')
 
         # Verify that making staff is reflected.
         alice.is_staff = True

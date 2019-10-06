@@ -108,11 +108,18 @@ class AccountDetail:
         self.username = user.username
         self.is_staff = user.is_staff
         self.is_editor = Group.objects.get(name='editors') in user.groups.all()
+        self.first_name = user.first_name
+        self.last_name = user.last_name
+        self.email = user.email
 
 class AccountDetailSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=200, read_only=True)
     is_staff = serializers.BooleanField(read_only=True)
     is_editor = serializers.BooleanField(read_only=True)
+    first_name = serializers.CharField(max_length=100, read_only=True)
+    last_name = serializers.CharField(max_length=100, read_only=True)
+    email = serializers.CharField(max_length=200, read_only=True)
+
 
 class BasicIndividualSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
