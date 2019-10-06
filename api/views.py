@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework import serializers
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.response import Response
@@ -147,3 +147,16 @@ def individual_ancestors(request, pk):
     populate_ancestors(individual, individuals)
     serializer = BasicIndividualWithParentsSerializer(instance=individuals, many=True)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([])
+def ping(request):
+    """
+    A watchdog; use this to kick the server to wake it up from Heroku's
+    sleep mode. Frontend blocks on the reponse of this.
+    """
+    content = {
+        'pong': True
+    }
+    return Response(content)

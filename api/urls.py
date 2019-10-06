@@ -10,6 +10,7 @@ urlpatterns = [
     path('families/<int:pk>/', views.DetailFamily.as_view()),
     path('families/of-individual/<int:pk>/', views.list_family_of_individual),
     path('families/search/<str:pattern>/', views.search_families),
+    path('ping/', views.ping),
     path('individuals/', views.ListIndividual.as_view()),
     path('individuals/<int:pk>/', views.DetailIndividual.as_view()),
     path('individuals/<int:pk>/verbose', views.verbose_individual_detail),
