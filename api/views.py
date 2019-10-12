@@ -17,7 +17,7 @@ from datetime import datetime
 import pytz
 
 from familyapi.settings import SITE_HOST, EMAIL_FROM_ADDRESS
-from api.models import Individual, Family, PendingUser
+from api.models import Individual, Family, PasswordResetRequest
 from api.permissions import IsReadOnlyOrCanEdit
 from api.serializers import IndividualSerializer
 from api.serializers import FamilySerializer
@@ -171,20 +171,8 @@ def ping(request):
     return Response(content)
 
 def account_already_exists(username, email):
-    if (User.objects.filter(username=username).count() > 0 or
-        User.objects.filter(email=email).count() > 0):
-        return True
-
-    pending_users = set(PendingUser.objects.filter(username=username).union(
-        PendingUser.objects.filter(email=email)
-    ))
-    if not pending_users:
-        return False
-
-    utc_now = pytz.utc.localize(datetime.utcnow())
-    pending_users = filter(lambda p: p.expires < utc_now, pending_users)
-
-    return True if pending_users else False
+    return (User.objects.filter(username=username).count() > 0 or
+            User.objects.filter(email=email).count() > 0)
 
 @api_view(['POST'])
 def create_account(request):
@@ -210,35 +198,69 @@ def create_account(request):
         }
         return Response(status=400, data=content)
 
-    pending_user = PendingUser.create(
-        request.data.get('first_name'),
-        request.data.get('last_name'),
+    new_user = User.objects.create_user(
         username,
-        email,
+        email=email,
+        first_name=request.data.get('first_name'),
+        last_name=request.data.get('last_name'),
     )
 
-    message = (
-        'To create your account on {},\nopen: http://{}/confirm-account/{}'.format(
-            SITE_HOST, SITE_HOST, pending_user.token)
-    )
+    pw_reset = PasswordResetRequest.create(user=new_user)
 
-    try:
-        send_mail(
-            'Please confirm your account on {}'.format(SITE_HOST),
-            message,
-            EMAIL_FROM_ADDRESS,
-            [pending_user.email],
-            fail_silently=False,
+    send_confirmation_email = request.data.get('send_confirmation_email', True)
+
+    if send_confirmation_email:
+        message = (
+            'To create your account on {},\nopen: https://{}/confirm-account/{}'.format(
+                SITE_HOST, SITE_HOST, pw_reset.token)
         )
-    except SMTPException as e:
-        content = {
-            'ok': False,
-            'error': "SMTP error({}): {}".format(e.errno, e.strerror)
-        }
-        return Response(status=500, data=content)
+
+        try:
+            send_mail(
+                'Please confirm your account on {}'.format(SITE_HOST),
+                message,
+                EMAIL_FROM_ADDRESS,
+                [email],
+                fail_silently=False,
+            )
+        except SMTPException as e:
+            content = {
+                'ok': False,
+                'error': "SMTP error({}): {}".format(e.errno, e.strerror)
+            }
+            return Response(status=500, data=content)
 
     content = {
         'ok': True,
     }
 
-    return Response(content)
+    return Response(status=201, data=content)
+
+
+@api_view(['POST'])
+@permission_classes([])
+def reset_password(request):
+    token = request.data.get('token')
+    password = request.data.get('password')
+    errors = []
+    if not token:
+        errors.append('Please specify a token to reset.')
+    if not password:
+        errors.append('Please specify a new password to reset to.')
+    if len(password) < 10:
+        errors.append('Please specify a password at least 10 charcters longs.')
+    if errors:
+        return Response(status=400, data={
+            'errors': errors,
+        })
+
+    pw_reset_request = PasswordResetRequest.find(token)
+    if not pw_reset_request:
+        return Response(status=400, data={
+            'errors': ['Can\'t find valid password reset request for specified token.']
+        })
+    pw_reset_request.user.set_password(password)
+    pw_reset_request.user.save()
+    return Response(status=200, data={
+        'ok': True,
+    })

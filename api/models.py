@@ -155,22 +155,29 @@ class Family(models.Model):
 def random_token(N):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=N))
 
-class PendingUser(models.Model):
-    token = models.CharField(max_length=50)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    username = models.CharField(max_length=100, unique=True)
-    email = models.CharField(max_length=50, unique=True)
+class PasswordResetRequest(models.Model):
+    user = models.ForeignKey('auth.User', related_name='password_reset_token', null=True, on_delete=models.CASCADE)
+    token = models.CharField(max_length=50, db_index=True)
     expires = models.DateTimeField()
 
     @classmethod
-    def create(cls, first_name, last_name, username, email):
+    def create(cls, user):
         utc_now = pytz.utc.localize(datetime.utcnow())
-        return PendingUser.objects.create(
+        return PasswordResetRequest.objects.create(
+            user=user,
             token=random_token(50),
-            first_name=first_name,
-            last_name=last_name,
-            username=username,
-            email=email,
             expires=utc_now+timedelta(days=3)
         )
+
+    @classmethod
+    def find(cls, token):
+        utc_now = pytz.utc.localize(datetime.utcnow())
+        reset_requests = list(PasswordResetRequest.objects.filter(token=token))
+        result = None
+        for reset_request in reset_requests:
+            if reset_request.expires < utc_now:
+                reset_request.delete()
+            else:
+                result = reset_request
+
+        return result
