@@ -7,10 +7,17 @@ from rest_framework.response import Response
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.contrib.auth.models import User, Group
+from django.core.mail import send_mail
 from django.db.models import CharField, Value
 from django.db.models.functions import Concat
+from django.http import Http404
 
-from api.models import Individual, Family
+from datetime import datetime
+import pytz
+
+from familyapi.settings import SITE_HOST, EMAIL_FROM_ADDRESS
+from api.models import Individual, Family, PendingUser
 from api.permissions import IsReadOnlyOrCanEdit
 from api.serializers import IndividualSerializer
 from api.serializers import FamilySerializer
@@ -18,6 +25,8 @@ from api.serializers import VerboseIndividual, VerboseIndividualSerializer
 from api.serializers import AccountDetail, AccountDetailSerializer
 from api.serializers import BasicIndividualAndFamilies, BasicIndividualAndFamiliesSerializer
 from api.serializers import BasicIndividualWithParents, BasicIndividualWithParentsSerializer
+
+from smtplib import SMTPException
 
 # Individual
 class ListIndividual(generics.ListCreateAPIView):
@@ -159,4 +168,77 @@ def ping(request):
     content = {
         'pong': True
     }
+    return Response(content)
+
+def account_already_exists(username, email):
+    if (User.objects.filter(username=username).count() > 0 or
+        User.objects.filter(email=email).count() > 0):
+        return True
+
+    pending_users = set(PendingUser.objects.filter(username=username).union(
+        PendingUser.objects.filter(email=email)
+    ))
+    if not pending_users:
+        return False
+
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    pending_users = filter(lambda p: p.expires < utc_now, pending_users)
+
+    return True if pending_users else False
+
+@api_view(['POST'])
+def create_account(request):
+    print(request.data)
+    print(request.data.get('username'))
+    errors = []
+    for field in ['username', 'email', 'first_name', 'last_name']:
+        if not request.data.get(field):
+            errors.append("Missing field '{}'".format(field))
+            continue
+        if len(request.data.get(field)) == 0:
+            errors.append("Field '{}' cannot be blank".format(field))
+        if len(request.data.get(field)) > 100:
+            errors.append("Field '{}' cannot have length > 100".format(field))
+    username = request.data.get('username')
+    email = request.data.get('email')
+    if account_already_exists(username, email):
+        errors.append("Account with that username or email already exists")
+    if errors:
+        content = {
+            'ok': False,
+            'errors': errors,
+        }
+        return Response(status=400, data=content)
+
+    pending_user = PendingUser.create(
+        request.data.get('first_name'),
+        request.data.get('last_name'),
+        username,
+        email,
+    )
+
+    message = (
+        'To create your account on {},\nopen: http://{}/confirm-account/{}'.format(
+            SITE_HOST, SITE_HOST, pending_user.token)
+    )
+
+    try:
+        send_mail(
+            'Please confirm your account on {}'.format(SITE_HOST),
+            message,
+            EMAIL_FROM_ADDRESS,
+            [pending_user.email],
+            fail_silently=False,
+        )
+    except SMTPException as e:
+        content = {
+            'ok': False,
+            'error': "SMTP error({}): {}".format(e.errno, e.strerror)
+        }
+        return Response(status=500, data=content)
+
+    content = {
+        'ok': True,
+    }
+
     return Response(content)

@@ -17,6 +17,27 @@ import dj_database_url
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+required_env_vars = [
+    'EMAIL_USE_SSL',
+    'EMAIL_HOST',
+    'EMAIL_PORT',
+    'EMAIL_HOST_USER',
+    'EMAIL_FROM_ADDRESS',
+    'EMAIL_HOST_PASSWORD',
+    'SITE_HOST',
+]
+
+for name in required_env_vars:
+    if not name in os.environ:
+        raise Exception("Required environment variable {} missing".format(name))
+
+EMAIL_USE_SSL = True if 'EMAIL_USE_SSL' in os.environ else False
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT'))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+SITE_HOST = os.environ.get('SITE_HOST')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -32,7 +53,7 @@ if "SECRET_KEY" not in os.environ:
 else:
     DEBUG = False
     CORS_ORIGIN_WHITELIST = [
-        "https://ancestry.pearce.org.nz",
+        "https://" + SITE_HOST,
     ]
 
 

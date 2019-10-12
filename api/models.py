@@ -1,6 +1,10 @@
 from django.db import models
-from datetime import date
+from datetime import date, datetime, timedelta
 from django.contrib.auth.models import User
+import pytz
+
+import string
+import random
 
 def birth_date_or_min_year(individual):
     """
@@ -147,3 +151,26 @@ class Family(models.Model):
         # Note: Don't pass args/kwargs here, else we'll try to re-create a new
         # instance, which will fail!
         super().save()
+
+def random_token(N):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=N))
+
+class PendingUser(models.Model):
+    token = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    username = models.CharField(max_length=100, unique=True)
+    email = models.CharField(max_length=50, unique=True)
+    expires = models.DateTimeField()
+
+    @classmethod
+    def create(cls, first_name, last_name, username, email):
+        utc_now = pytz.utc.localize(datetime.utcnow())
+        return PendingUser.objects.create(
+            token=random_token(50),
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            email=email,
+            expires=utc_now+timedelta(days=3)
+        )
