@@ -18,7 +18,7 @@ import pytz
 
 from familyapi.settings import SITE_HOST, EMAIL_FROM_ADDRESS
 from api.models import Individual, Family, PasswordResetRequest
-from api.permissions import IsReadOnlyOrCanEdit
+from api.permissions import IsReadOnlyOrCanEdit, in_editors_group
 from api.serializers import IndividualSerializer
 from api.serializers import FamilySerializer
 from api.serializers import VerboseIndividual, VerboseIndividualSerializer
@@ -35,7 +35,6 @@ class ListIndividual(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsReadOnlyOrCanEdit]
 
     def perform_create(self, serializer):
-        print("ListIndividual.perform_create user={}".format(self.request.user))
         serializer.save(owner=self.request.user)
 
 class DetailIndividual(generics.RetrieveUpdateDestroyAPIView):
@@ -120,7 +119,6 @@ def search_families(request, pattern):
     families = list(Family.objects.filter(name__icontains=pattern))
     families.sort(key=lambda f: f.name)
     serializer = FamilySerializer(instance=families, many=True)
-    print("search_families {}".format(request.user))
     return Response(serializer.data)
 
 def populate_descendants(individual, individuals):
@@ -176,8 +174,6 @@ def account_already_exists(username, email):
 
 @api_view(['POST'])
 def create_account(request):
-    print(request.data)
-    print(request.data.get('username'))
     errors = []
     for field in ['username', 'email', 'first_name', 'last_name']:
         if not request.data.get(field):
@@ -204,6 +200,10 @@ def create_account(request):
         first_name=request.data.get('first_name'),
         last_name=request.data.get('last_name'),
     )
+
+    editors_group = Group.objects.get(name='editors')
+    new_user.groups.add(editors_group)
+    new_user.save()
 
     pw_reset = PasswordResetRequest.create(user=new_user)
 
@@ -259,8 +259,53 @@ def reset_password(request):
         return Response(status=400, data={
             'errors': ['Can\'t find valid password reset request for specified token.']
         })
+    if not in_editors_group(pw_reset_request.user):
+        return Response(status=400, data={
+            'errors': ['Can\'t change password for non-editable users.']
+        })
     pw_reset_request.user.set_password(password)
     pw_reset_request.user.save()
     return Response(status=200, data={
         'ok': True,
     })
+
+
+@api_view(['POST'])
+@permission_classes([])
+def recover_account(request):
+    email = request.data.get('email')
+    if not email:
+        return Response(status=200)
+    user = User.objects.filter(email=email).first()
+    if not user:
+        return Response(status=200)
+    if not in_editors_group(user):
+        # Can't change password for non-editable users.
+        return Response(status=200)
+
+    pw_reset_request = PasswordResetRequest.create(user)
+
+    send_confirmation_email = request.data.get('send_confirmation_email', True)
+
+    if send_confirmation_email:
+        message = (
+            """
+            To reset the password for your account on {},
+            with username: {},
+            open:\nhttps://{}/reset-password/{}
+            """.format(SITE_HOST, user.username, SITE_HOST, pw_reset_request.token)
+        )
+
+        try:
+            send_mail(
+                'Password reset request for {}'.format(SITE_HOST),
+                message,
+                EMAIL_FROM_ADDRESS,
+                [email],
+                fail_silently=True,
+            )
+        except SMTPException as e:
+            # Fail silently.
+            pass
+
+    return Response(status=200)

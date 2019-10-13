@@ -7,6 +7,7 @@ from api import views
 urlpatterns = [
     path('account/', views.account_details),
     path('create-account/', views.create_account),
+    path('recover-account/', views.recover_account),
     path('reset-password/', views.reset_password),
     path('families/', views.ListFamily.as_view()),
     path('families/<int:pk>/', views.DetailFamily.as_view()),
