@@ -276,6 +276,11 @@ def recover_account(request):
     email = request.data.get('email')
     if not email:
         return Response(status=200)
+    count = User.objects.filter(email=email).count()
+    if count == 0 or count > 1:
+        # Not one unique user with this email.
+        return Response(status=200)
+
     user = User.objects.filter(email=email).first()
     if not user:
         return Response(status=200)
@@ -304,7 +309,7 @@ def recover_account(request):
                 [email],
                 fail_silently=True,
             )
-        except SMTPException as e:
+        except SMTPException as _:
             # Fail silently.
             pass
 

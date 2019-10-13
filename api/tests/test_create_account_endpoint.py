@@ -63,7 +63,7 @@ class CreateAccountEndpointTest(TestCase):
         # Create an account for bob.
         response = client.post('/api/v1/create-account/', data={
             'username': 'bob',
-            'email': 'alice@example.com',
+            'email': 'bob@example.com',
             'first_name': 'bob',
             'last_name': 'test',
             'send_confirmation_email': False,
