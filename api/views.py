@@ -214,7 +214,6 @@ def create_account(request):
             'To create your account on {},\nopen: https://{}/confirm-account/{}'.format(
                 SITE_HOST, SITE_HOST, pw_reset.token)
         )
-
         try:
             send_mail(
                 'Please confirm your account on {}'.format(SITE_HOST),
@@ -229,6 +228,21 @@ def create_account(request):
                 'error': "SMTP error({}): {}".format(e.errno, e.strerror)
             }
             return Response(status=500, data=content)
+
+        message = (
+            'Account created for {} {}, {} '.format(
+                new_user.first_name, new_user.last_name, new_user.email)
+        )
+        try:
+            send_mail(
+                'New user account created on {}'.format(SITE_HOST),
+                message,
+                EMAIL_FROM_ADDRESS,
+                [EMAIL_FROM_ADDRESS],
+                fail_silently=True,
+            )
+        except SMTPException:
+            pass
 
     content = {
         'ok': True,
@@ -265,6 +279,27 @@ def reset_password(request):
         })
     pw_reset_request.user.set_password(password)
     pw_reset_request.user.save()
+
+    send_confirmation_email = request.data.get('send_confirmation_email', True)
+    if send_confirmation_email:
+        try:
+            user = pw_reset_request.user
+            message = (
+                'Password reset for {} {}, {} '.format(
+                    user.first_name, user.last_name, user.email)
+            )
+            send_mail(
+                'Password reset for user on {}'.format(SITE_HOST),
+                message,
+                EMAIL_FROM_ADDRESS,
+                [EMAIL_FROM_ADDRESS],
+                fail_silently=True,
+            )
+        except SMTPException:
+            pass
+
+    pw_reset_request.delete()
+
     return Response(status=200, data={
         'ok': True,
     })

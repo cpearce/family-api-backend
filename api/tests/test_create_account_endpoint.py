@@ -91,6 +91,7 @@ class CreateAccountEndpointTest(TestCase):
         response = client.post('/api/v1/reset-password/', data={
             'token': pw_reset_request.token,
             'password': 'another-test-password',
+            'send_confirmation_email': False,
         })
         self.assertEqual(response.status_code, 200)
 
@@ -151,6 +152,7 @@ class CreateAccountEndpointTest(TestCase):
         response = client.post('/api/v1/reset-password/', data={
             'token': pw_reset_request.token,
             'password': 'another-test-password',
+            'send_confirmation_email': False,
         })
         self.assertEqual(response.status_code, 200)
 
