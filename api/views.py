@@ -17,7 +17,7 @@ from datetime import datetime
 import pytz
 
 from familyapi.settings import SITE_HOST, EMAIL_FROM_ADDRESS
-from api.models import Individual, Family, PasswordResetRequest
+from api.models import Individual, Family, PasswordResetRequest, FamilyNameList
 from api.permissions import IsReadOnlyOrCanEdit, in_editors_group
 from api.serializers import IndividualSerializer
 from api.serializers import FamilySerializer
@@ -116,8 +116,7 @@ def search_individuals(request, pattern):
 
 @api_view(['GET'])
 def search_families(request, pattern):
-    families = list(Family.objects.filter(name__icontains=pattern))
-    families.sort(key=lambda f: f.name)
+    families = FamilyNameList.search(pattern)
     serializer = FamilySerializer(instance=families, many=True)
     return Response(serializer.data)
 

@@ -1,6 +1,9 @@
 from django.db import models
 from datetime import date, datetime, timedelta
 from django.contrib.auth.models import User
+from collections import Counter
+from functools import reduce
+
 import pytz
 
 import string
@@ -151,6 +154,7 @@ class Family(models.Model):
         # Note: Don't pass args/kwargs here, else we'll try to re-create a new
         # instance, which will fail!
         super().save()
+        FamilyNameList.ensure_indexed(self)
 
 def random_token(N):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=N))
@@ -179,5 +183,61 @@ class PasswordResetRequest(models.Model):
                 reset_request.delete()
             else:
                 result = reset_request
+
+        return result
+
+def search_terms(name):
+    delchars = str.maketrans({ ch : ch if str.isalpha(ch) else None for ch in map(chr, range(256))})
+    words = [word.translate(delchars) for word in name.lower().split(' ')]
+    return list(filter(lambda word: word != '', words))
+
+class FamilyNameList(models.Model):
+    name = models.CharField(max_length=100, db_index=True, unique=True)
+    matching_families = models.ManyToManyField(Family, related_name='word_matches')
+
+    @classmethod
+    def ensure_indexed(cls, family):
+        words = set()
+        for partner in family.partners.all():
+            for name in search_terms(partner.first_names):
+                words.add(name.lower())
+            for name in search_terms(partner.last_name):
+                words.add(name.lower())
+        for word in words:
+            name_list, _created = FamilyNameList.objects.get_or_create(name=word)
+            name_list.matching_families.add(family)
+            name_list.save()
+
+    @classmethod
+    def search(cls, query):
+        words = [word for word in search_terms(query)]
+
+        if not words:
+            return []
+
+        # For each word, find the list of families that match that word.
+        # Build a list of QuerySets, one for each word, and then OR them
+        # together. This should result in only one DB query.
+        querysets = [
+            FamilyNameList.objects.filter(name__startswith=word) for word in words
+        ]
+
+        queryset = reduce(lambda a, b: a | b, querysets)
+
+        result = set()
+        # For each word->families match, count how many words each family matches.
+        # Keep track of the maximum number of matches, and below discard those which
+        # are less than the maximum.
+        match_count = Counter()
+        max_count = 0
+        for family_name_list in queryset:
+            for family in family_name_list.matching_families.all():
+                match_count[family.id] += 1
+                max_count = max(max_count, match_count[family.id])
+                result.add(family)
+
+        # Convert result to list, sorting by family name.
+        result = list(filter(lambda family: match_count[family.id] == max_count, result))
+        result.sort(key=lambda f: f.name)
 
         return result

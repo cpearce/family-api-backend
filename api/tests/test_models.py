@@ -2,7 +2,7 @@ import datetime
 
 from django.test import TestCase
 from django.utils import timezone
-from api.models import Individual, Family
+from api.models import Individual, Family, FamilyNameList, search_terms
 from django.urls import reverse
 
 class IndividualModelTests(TestCase):
@@ -33,3 +33,33 @@ class IndividualModelTests(TestCase):
 
         for parent in [grandad, grandma]:
             self.assertIs(len(parent.partner_in_families.all()), 1)
+
+class SearchTermTest(TestCase):
+    def test_search_terms(self):
+        self.assertSetEqual({"okeefe", "tylerlee"}, set(search_terms("O'Keefe & Tyler-Lee")))
+
+class FamilyNameListTest(TestCase):
+    def create_family(self, wife_first_name, wife_last_name, husband_first_name, husband_last_name):
+        husband = Individual.objects.create(first_names=husband_first_name, last_name=husband_last_name, sex="M")
+        wife = Individual.objects.create(first_names=wife_first_name, last_name=wife_last_name, sex="F")
+        family = Family.objects.create()
+        family.partners.add(wife)
+        family.partners.add(husband)
+        family.save()
+        return husband, wife, family
+
+    def test_search(self):
+        bob, alice, alice_and_bob = self.create_family("Alice", "Aitken", "Bob", "Baker")
+        ben, audrey, audrey_and_ben = self.create_family("Audrey", "Hepburn", "Ben", "Franklin")
+
+        bob_and_audrey = Family.objects.create()
+        bob_and_audrey.partners.add(bob)
+        bob_and_audrey.save()
+        bob_and_audrey.partners.add(audrey)
+        bob_and_audrey.save()
+
+        families = set(FamilyNameList.search("Alice Aitken & Bob Baker"))
+        self.assertSetEqual({alice_and_bob}, families)
+
+        families = set(FamilyNameList.search("Bob Baker"))
+        self.assertSetEqual({alice_and_bob, bob_and_audrey}, families)
