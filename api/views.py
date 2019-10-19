@@ -211,7 +211,7 @@ def create_account(request):
 
     if send_confirmation_email:
         message = (
-            'To create your account on {},\nopen: https://{}/confirm-account/{}'.format(
+            'To create your account on {},\nopen: https://{}/#confirm-account/{}'.format(
                 SITE_HOST, SITE_HOST, pw_reset.token)
         )
         try:
@@ -332,7 +332,7 @@ def recover_account(request):
             """
             To reset the password for your account on {},
             with username: {},
-            open:\nhttps://{}/reset-password/{}
+            open:\nhttps://{}/#reset-password/{}
             """.format(SITE_HOST, user.username, SITE_HOST, pw_reset_request.token)
         )
 
