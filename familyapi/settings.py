@@ -11,8 +11,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-import django_heroku
-import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,6 +23,11 @@ required_env_vars = [
     'EMAIL_FROM_ADDRESS',
     'EMAIL_HOST_PASSWORD',
     'SITE_HOST',
+    'DATABASE_NAME',
+    'DATABASE_USER',
+    'DATABASE_PASSWORD',
+    'DATABASE_HOST',
+    'DATABASE_PORT',
 ]
 
 for name in required_env_vars:
@@ -38,6 +41,12 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 SITE_HOST = os.environ.get('SITE_HOST')
+DATABASE_NAME = os.environ.get('DATABASE_NAME')
+DATABASE_USER = os.environ.get('DATABASE_USER')
+DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD')
+DATABASE_HOST = os.environ.get('DATABASE_HOST')
+DATABASE_PORT = os.environ.get('DATABASE_PORT')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -110,28 +119,16 @@ WSGI_APPLICATION = 'familyapi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-if "DATABASE_URL" in os.environ:
-    # Heroku Postgres DB.
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True),
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
     }
-else:
-    # Local sqlite DB
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-        # 'default': {
-        #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        #     'NAME': 'familyapi',
-        #     'USER': 'familyapiuser',
-        #     'PASSWORD': '536C96E2-8EC4-41CB-A80C-0C316B5E7235',
-        #     'HOST': 'localhost',
-        #     'PORT': '',
-        # }
-    }
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -182,5 +179,3 @@ REST_FRAMEWORK = {
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = "/static/"
-
-django_heroku.settings(locals())
