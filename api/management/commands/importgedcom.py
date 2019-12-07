@@ -4,15 +4,18 @@ from api.models import Individual, Family
 from gedcom.element.individual import IndividualElement
 from gedcom.element.family import FamilyElement
 from gedcom.parser import Parser
-import dateparser
 import gedcom
 from collections import defaultdict
+from dateutil import parser
 
-def to_date(s):
+def to_date(s, name, note):
     if s == "":
-        return None
-    #  Note: dateparser uses local time zone by default.
-    return dateparser.parse(s, settings={'RETURN_AS_TIMEZONE_AWARE': True})
+        return None, note
+    try:
+        d = parser.parse(s)
+        return d, note
+    except ValueError:
+        return None, note + "*** Import Error: failed to parse date value of '{}' for '{}'.***"
 
 class Command(BaseCommand):
     help = 'Imports database in GEDCOM format'
@@ -79,17 +82,22 @@ class Command(BaseCommand):
                     else:
                         raise Exception('Can\'t handle tag {} in BAPM'.format(grand_child.get_tag()))
 
+        birth_date, note = to_date(birth_date, "birth", note)
+        death_date, note = to_date(death_date, "death", note)
+        buried_date, note = to_date(burial_date, "buried", note)
+        baptism_date, note = to_date(bap_date, "baptism", note)
+
         return Individual(
             first_names = first,
             last_name = last,
             sex = indi_element.get_gender(),
-            birth_date = to_date(birth_date),
+            birth_date = birth_date,
             birth_location = birth_place,
-            death_date = to_date(death_date),
+            death_date = death_date,
             death_location = death_place,
-            buried_date = to_date(burial_date),
+            buried_date = buried_date,
             buried_location = burial_place,
-            baptism_date = to_date(bap_date),
+            baptism_date = baptism_date,
             baptism_location = bap_place,
             occupation = indi_element.get_occupation(),
             note = note,
@@ -118,8 +126,9 @@ class Command(BaseCommand):
             individual.save()
 
         for (husband, wife, date, place, children, note) in families:
+            married_date, note = to_date(date, "married", note)
             family = Family(
-                married_date = to_date(date),
+                married_date = married_date,
                 married_location = place,
                 note = note,
             )
