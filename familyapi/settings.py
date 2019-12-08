@@ -11,9 +11,13 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import json
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+with open(os.path.join(BASE_DIR, 'secrets.json')) as f:
+    secrets = json.loads(f.read())
 
 required_env_vars = [
     'EMAIL_USE_SSL',
@@ -28,20 +32,21 @@ required_env_vars = [
 ]
 
 for name in required_env_vars:
-    if not name in os.environ:
-        raise Exception("Required environment variable {} missing".format(name))
+    if not name in secrets:
+        raise Exception("Required secret variable {} missing".format(name))
 
-EMAIL_USE_SSL = True if 'EMAIL_USE_SSL' in os.environ else False
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT'))
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-SITE_HOST = os.environ.get('SITE_HOST')
-SECRET_KEY = os.environ.get('SECRET_KEY')
+EMAIL_USE_SSL = secrets['EMAIL_USE_SSL']
+EMAIL_HOST = secrets['EMAIL_HOST']
+EMAIL_PORT = secrets['EMAIL_PORT']
+EMAIL_HOST_USER = secrets['EMAIL_HOST_USER']
+EMAIL_FROM_ADDRESS = secrets['EMAIL_FROM_ADDRESS']
+EMAIL_HOST_PASSWORD = secrets['EMAIL_HOST_PASSWORD']
+SITE_HOST = secrets['SITE_HOST']
+SECRET_KEY = secrets['SECRET_KEY']
+DATABASE_FILE = secrets['DATABASE_FILE']
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.environ.get('DEBUG', False))
-DATABASE_FILE = os.environ.get('DATABASE_FILE')
+DEBUG = secrets.get('DEBUG', False)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
