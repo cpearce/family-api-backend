@@ -19,7 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 with open(os.path.join(BASE_DIR, 'secrets.json')) as f:
     secrets = json.loads(f.read())
 
-required_env_vars = [
+required_secrets = [
     'EMAIL_USE_SSL',
     'EMAIL_HOST',
     'EMAIL_PORT',
@@ -31,7 +31,7 @@ required_env_vars = [
     'DATABASE_FILE',
 ]
 
-for name in required_env_vars:
+for name in required_secrets:
     if not name in secrets:
         raise Exception("Required secret variable {} missing".format(name))
 
