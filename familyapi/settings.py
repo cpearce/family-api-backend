@@ -23,11 +23,6 @@ required_env_vars = [
     'EMAIL_FROM_ADDRESS',
     'EMAIL_HOST_PASSWORD',
     'SITE_HOST',
-    'DATABASE_NAME',
-    'DATABASE_USER',
-    'DATABASE_PASSWORD',
-    'DATABASE_HOST',
-    'DATABASE_PORT',
 ]
 
 for name in required_env_vars:
@@ -41,12 +36,6 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 SITE_HOST = os.environ.get('SITE_HOST')
-DATABASE_NAME = os.environ.get('DATABASE_NAME')
-DATABASE_USER = os.environ.get('DATABASE_USER')
-DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD')
-DATABASE_HOST = os.environ.get('DATABASE_HOST')
-DATABASE_PORT = os.environ.get('DATABASE_PORT')
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -120,13 +109,9 @@ WSGI_APPLICATION = 'familyapi.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": DATABASE_NAME,
-        "USER": DATABASE_USER,
-        "PASSWORD": DATABASE_PASSWORD,
-        "HOST": DATABASE_HOST,
-        "PORT": DATABASE_PORT,
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
