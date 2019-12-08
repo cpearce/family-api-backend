@@ -29,6 +29,7 @@ required_secrets = [
     'SITE_HOST',
     'SECRET_KEY',
     'DATABASE_FILE',
+    'STATIC_ROOT',
 ]
 
 for name in required_secrets:
@@ -41,9 +42,20 @@ EMAIL_PORT = secrets['EMAIL_PORT']
 EMAIL_HOST_USER = secrets['EMAIL_HOST_USER']
 EMAIL_FROM_ADDRESS = secrets['EMAIL_FROM_ADDRESS']
 EMAIL_HOST_PASSWORD = secrets['EMAIL_HOST_PASSWORD']
+
+# Domain of website.
 SITE_HOST = secrets['SITE_HOST']
+
+# Key for generating CSRF tokens.
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = secrets['SECRET_KEY']
+
+# Path to location of sqllite DB. Should not be web accessible!
 DATABASE_FILE = secrets['DATABASE_FILE']
+
+# Defines the directory which django stores static files (like CSS/JS) for
+# Django Admin. Collate them with `./manage.py collectstaticfiles`.
+STATIC_ROOT = secrets['STATIC_ROOT']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = secrets.get('DEBUG', False)
@@ -51,7 +63,6 @@ DEBUG = secrets.get('DEBUG', False)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 if DEBUG:
     # Local development environment.
     # SECURITY WARNING: don't allow requests from all origins in production!
@@ -61,8 +72,9 @@ else:
         "https://" + SITE_HOST,
     ]
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    SITE_HOST,
+]
 
 # Application definition
 
@@ -157,8 +169,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -168,5 +178,4 @@ REST_FRAMEWORK = {
     ],
 }
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = "/static/"
