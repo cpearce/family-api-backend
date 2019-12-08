@@ -68,14 +68,16 @@ if DEBUG:
     # Local development environment.
     # SECURITY WARNING: don't allow requests from all origins in production!
     CORS_ORIGIN_ALLOW_ALL = True
+    ALLOWED_HOSTS = [
+        'localhost'
+    ]
 else:
     CORS_ORIGIN_WHITELIST = [
         "https://" + SITE_HOST,
     ]
-
-ALLOWED_HOSTS = [
-    SITE_HOST,
-]
+    ALLOWED_HOSTS = [
+        SITE_HOST,
+    ]
 
 # Application definition
 
