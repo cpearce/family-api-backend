@@ -23,7 +23,8 @@ required_env_vars = [
     'EMAIL_FROM_ADDRESS',
     'EMAIL_HOST_PASSWORD',
     'SITE_HOST',
-    'SECRET_KEY'
+    'SECRET_KEY',
+    'DATABASE_FILE',
 ]
 
 for name in required_env_vars:
@@ -40,6 +41,7 @@ SITE_HOST = os.environ.get('SITE_HOST')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get('DEBUG', False))
+DATABASE_FILE = os.environ.get('DATABASE_FILE')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -110,7 +112,7 @@ WSGI_APPLICATION = 'familyapi.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': DATABASE_FILE,
     }
 }
 
