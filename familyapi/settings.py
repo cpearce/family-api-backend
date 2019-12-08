@@ -23,6 +23,7 @@ required_env_vars = [
     'EMAIL_FROM_ADDRESS',
     'EMAIL_HOST_PASSWORD',
     'SITE_HOST',
+    'SECRET_KEY'
 ]
 
 for name in required_env_vars:
@@ -36,24 +37,22 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 SITE_HOST = os.environ.get('SITE_HOST')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = bool(os.environ.get('DEBUG', False))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if "SECRET_KEY" not in os.environ:
+if DEBUG:
     # Local development environment.
-    SECRET_KEY = r'9a=aik8)4%#4c0_ou9rg!@haadjn8q&lj5idjl*ci4_lz!rtk2'
-    # SECURITY WARNING: don't run with debug turned on in production!
-    DEBUG = True
     # SECURITY WARNING: don't allow requests from all origins in production!
     CORS_ORIGIN_ALLOW_ALL = True
 else:
-    DEBUG = False
     CORS_ORIGIN_WHITELIST = [
         "https://" + SITE_HOST,
     ]
-
 
 ALLOWED_HOSTS = []
 
