@@ -36,6 +36,7 @@ for name in required_secrets:
     if not name in secrets:
         raise Exception("Required secret variable {} missing".format(name))
 
+# Email settings.
 EMAIL_USE_SSL = secrets['EMAIL_USE_SSL']
 EMAIL_HOST = secrets['EMAIL_HOST']
 EMAIL_PORT = secrets['EMAIL_PORT']
@@ -54,7 +55,7 @@ SECRET_KEY = secrets['SECRET_KEY']
 DATABASE_FILE = secrets['DATABASE_FILE']
 
 # Defines the directory which django stores static files (like CSS/JS) for
-# Django Admin. Collate them with `./manage.py collectstaticfiles`.
+# Django Admin. Collate them with `./manage.py collectstatic`.
 STATIC_ROOT = secrets['STATIC_ROOT']
 
 # SECURITY WARNING: don't run with debug turned on in production!
