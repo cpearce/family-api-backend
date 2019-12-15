@@ -121,6 +121,7 @@ class Command(BaseCommand):
             for partner in filter(lambda k: k != '', [husband, wife]):
                 individuals[partner].partner_in_families.add(family)
                 individuals[partner].save()
+            family.save()
 
             for child in children:
                 if individuals[child].child_in_family != None:
