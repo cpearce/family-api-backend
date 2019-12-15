@@ -95,15 +95,15 @@ class Individual(models.Model):
         return " ".join(filter(None, [self.formal_name(), self.lifetime()]))
 
     def lifetime(self):
-        if self.birth_date is None and self.death_date is None:
+        if not self.birth_date and not self.death_date:
             return ""
         s = "("
-        if self.birth_date is not None:
+        if self.birth_date:
             s += str(fuzzy_date_year(self.birth_date))
         else:
             s += "?"
         s += "-"
-        if self.death_date is not None:
+        if self.death_date:
             s += str(fuzzy_date_year(self.death_date))
         else:
             s += "?"
