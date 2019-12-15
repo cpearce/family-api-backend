@@ -6,16 +6,7 @@ from gedcom.element.family import FamilyElement
 from gedcom.parser import Parser
 import gedcom
 from collections import defaultdict
-from dateutil import parser
 
-def to_date(s, name, note):
-    if s == "":
-        return None, note
-    try:
-        d = parser.parse(s)
-        return d, note
-    except ValueError:
-        return None, note + "*** Import Error: failed to parse date value of '{}' for '{}'.***"
 
 class Command(BaseCommand):
     help = 'Imports database in GEDCOM format'
@@ -63,8 +54,8 @@ class Command(BaseCommand):
         (burial_date, burial_place, _) = indi_element.get_burial_data()
 
         note = ''
-        bap_date = ''
-        bap_place = ''
+        baptism_date = ''
+        baptism_place = ''
         for child in indi_element.get_child_elements():
             if child.get_tag() == 'NOTE':
                 note += child.get_value()
@@ -76,16 +67,11 @@ class Command(BaseCommand):
             if child.get_tag() == 'BAPM':
                 for grand_child in child.get_child_elements():
                     if grand_child.get_tag() == 'DATE':
-                        bap_date = grand_child.get_value()
+                        baptism_date = grand_child.get_value()
                     elif grand_child.get_tag() == 'PLAC':
-                        bap_place = grand_child.get_value()
+                        baptism_place = grand_child.get_value()
                     else:
                         raise Exception('Can\'t handle tag {} in BAPM'.format(grand_child.get_tag()))
-
-        birth_date, note = to_date(birth_date, "birth", note)
-        death_date, note = to_date(death_date, "death", note)
-        buried_date, note = to_date(burial_date, "buried", note)
-        baptism_date, note = to_date(bap_date, "baptism", note)
 
         return Individual(
             first_names = first,
@@ -95,10 +81,10 @@ class Command(BaseCommand):
             birth_location = birth_place,
             death_date = death_date,
             death_location = death_place,
-            buried_date = buried_date,
+            buried_date = burial_date,
             buried_location = burial_place,
             baptism_date = baptism_date,
-            baptism_location = bap_place,
+            baptism_location = baptism_place,
             occupation = indi_element.get_occupation(),
             note = note,
         )
@@ -125,8 +111,7 @@ class Command(BaseCommand):
         for individual in individuals.values():
             individual.save()
 
-        for (husband, wife, date, place, children, note) in families:
-            married_date, note = to_date(date, "married", note)
+        for (husband, wife, married_date, place, children, note) in families:
             family = Family(
                 married_date = married_date,
                 married_location = place,

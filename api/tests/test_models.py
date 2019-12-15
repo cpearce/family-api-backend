@@ -1,5 +1,3 @@
-import datetime
-
 from django.test import TestCase
 from django.utils import timezone
 from api.models import Individual, Family, FamilyNameList, search_terms

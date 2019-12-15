@@ -4,28 +4,38 @@ from django.contrib.auth.models import User
 from collections import Counter
 from functools import reduce
 
+import re
+
 import pytz
 
 import string
 import random
 
+def fuzzy_date_year(value):
+    digit_matches = re.findall(r"(\d+)", value)
+    if not digit_matches:
+        return None
+    for s in filter(lambda x: len(x) == 4, digit_matches):
+        return int(s)
+    return None
+
 def birth_date_or_min_year(individual):
     """
-    Returns an individual's birth date, or if that's unknown,
-    the minimum representable date.
+    Returns an individual's birth date, or if that's unknown, 0.
     """
-    if individual.birth_date:
-        return individual.birth_date
-    return date.min
+    year = fuzzy_date_year(individual.birth_date)
+    if year:
+        return year
+    return 0
 
 def married_date_or_min_year(partnership):
     """
-    Returns a partnership's married date, or if that's unknown,
-    the minimum representable date.
+    Returns a partnership's married date, or if that's unknown, 0.
     """
-    if partnership.married_date:
-        return partnership.married_date
-    return date.min
+    year = fuzzy_date_year(partnership.married_date)
+    if year:
+        return year
+    return 0
 
 class Individual(models.Model):
     first_names = models.CharField(max_length=50, blank=True)
@@ -37,16 +47,16 @@ class Individual(models.Model):
     # may be unknown.
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True)
 
-    birth_date = models.DateField('birth date', null=True, blank=True)
+    birth_date = models.CharField('birth date', max_length=50, blank=True)
     birth_location = models.CharField(max_length=100, blank=True)
 
-    death_date = models.DateField('death date', null=True, blank=True)
+    death_date = models.CharField('death date', max_length=50, blank=True)
     death_location = models.CharField(max_length=100, blank=True)
 
-    buried_date = models.DateField('buried date', null=True, blank=True)
+    buried_date = models.CharField('buried date', max_length=50, blank=True)
     buried_location = models.CharField(max_length=100, blank=True)
 
-    baptism_date = models.DateField('baptism date', null=True, blank=True)
+    baptism_date = models.CharField('baptism date', max_length=50, blank=True)
     baptism_location = models.CharField(max_length=100, blank=True)
 
     occupation = models.CharField(max_length=100, blank=True)
@@ -89,12 +99,12 @@ class Individual(models.Model):
             return ""
         s = "("
         if self.birth_date is not None:
-            s += str(self.birth_date.year)
+            s += str(fuzzy_date_year(self.birth_date))
         else:
             s += "?"
         s += "-"
         if self.death_date is not None:
-            s += str(self.death_date.year)
+            s += str(fuzzy_date_year(self.death_date))
         else:
             s += "?"
         s += ")"
@@ -126,7 +136,7 @@ class Individual(models.Model):
         ]
 
 class Family(models.Model):
-    married_date = models.DateField('married date', null=True, blank=True)
+    married_date = models.CharField('married date', max_length=50, blank=True)
     married_location = models.CharField(max_length=100, blank=True)
 
     partners = models.ManyToManyField(

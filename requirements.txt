@@ -13,7 +13,6 @@ mccabe==0.6.1
 pipdeptree==0.13.2
 Pygments==2.4.2
 pylint==2.3.1
-python-dateutil==2.8.0
 python-gedcom==1.0.0
 pytz==2019.2
 six==1.13.0
