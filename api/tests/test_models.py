@@ -61,3 +61,8 @@ class FamilyNameListTest(TestCase):
 
         families = set(FamilyNameList.search("Bob Baker"))
         self.assertSetEqual({alice_and_bob, bob_and_audrey}, families)
+
+        bob.last_name = "Barker"
+        bob.save()
+        families = set(FamilyNameList.search("Bob Barker"))
+        self.assertSetEqual({alice_and_bob, bob_and_audrey}, families)

@@ -135,6 +135,14 @@ class Individual(models.Model):
                     if p != self
         ]
 
+    def save(self, *args, **kwargs):
+        # Update names of family's, in case this person's name
+        # changed, which changes the family name.
+        super(Individual, self).save(*args, **kwargs)
+        for family in self.partner_in_families.all():
+            family.update_family_name()
+
+
 class Family(models.Model):
     married_date = models.CharField('married date', max_length=50, blank=True)
     married_location = models.CharField(max_length=100, blank=True)
@@ -150,11 +158,7 @@ class Family(models.Model):
 
     owner = models.ForeignKey('auth.User', related_name='families', null=True, on_delete=models.SET_NULL)
 
-    def save(self, *args, **kwargs):
-        if not self.id:
-            # We need to have a valid ID before calling the `partners()` function
-            # below, so double save here. This hits when creating new instances.
-            super(Family, self).save(*args, **kwargs)
+    def update_family_name(self):
         # Sort list first by last name, second by sex with males first.
         partners_list = list(self.partners.all());
         partners_list.sort(key=lambda i: i.last_name)
@@ -165,6 +169,13 @@ class Family(models.Model):
         # instance, which will fail!
         super().save()
         FamilyNameList.ensure_indexed(self)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # We need to have a valid ID before calling the `partners()` function
+            # below, so double save here. This hits when creating new instances.
+            super(Family, self).save(*args, **kwargs)
+        self.update_family_name()
 
 def random_token(N):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=N))
