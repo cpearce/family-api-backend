@@ -43,6 +43,7 @@ def serialize_family(f):
         "married": {
             "date": str_or_none(f.married_date),
             "location": str_or_none(f.married_location),
+            "note": str_or_none(f.note),
         }
     }
 
