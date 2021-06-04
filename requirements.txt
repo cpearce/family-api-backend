@@ -2,7 +2,7 @@ asgiref==3.2.3
 astroid==2.2.5
 certifi==2019.6.16
 chardet==3.0.4
-Django==3.0
+Django==3.1.9
 django-cors-headers==3.2.0
 djangorestframework==3.10.3
 gunicorn==19.9.0
