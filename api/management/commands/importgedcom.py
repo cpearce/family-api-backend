@@ -9,13 +9,13 @@ from collections import defaultdict
 
 
 class Command(BaseCommand):
-    help = 'Imports database in GEDCOM format'
+    help = "Imports database in GEDCOM format"
 
     def add_arguments(self, parser):
-        parser.add_argument('gedcom_file_path')
+        parser.add_argument("gedcom_file_path")
 
     def handle(self, *args, **options):
-        self.import_gedcom_file(options['gedcom_file_path'])
+        self.import_gedcom_file(options["gedcom_file_path"])
 
     def parse_family(self, family_element):
         """
@@ -24,12 +24,12 @@ class Command(BaseCommand):
         which corresponds to:
         (husband, wife, date, place, children, note)
         """
-        husband = ''
-        wife = ''
-        date = ''
-        place = ''
+        husband = ""
+        wife = ""
+        date = ""
+        place = ""
         children = []
-        note = ''
+        note = ""
         for element in family_element.get_child_elements():
             if element.get_tag() == gedcom.tags.GEDCOM_TAG_HUSBAND:
                 husband = element.get_value()
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                         date = marriage_data.get_value()
                     if marriage_data.get_tag() == gedcom.tags.GEDCOM_TAG_PLACE:
                         place = marriage_data.get_value()
-                    if marriage_data.get_tag() == 'NOTE':
+                    if marriage_data.get_tag() == "NOTE":
                         note = marriage_data.get_value()
         return (husband, wife, date, place, children, note)
 
@@ -53,40 +53,50 @@ class Command(BaseCommand):
         (death_date, death_place, _) = indi_element.get_death_data()
         (burial_date, burial_place, _) = indi_element.get_burial_data()
 
-        note = ''
-        baptism_date = ''
-        baptism_place = ''
+        note = ""
+        baptism_date = ""
+        baptism_place = ""
         for child in indi_element.get_child_elements():
-            if child.get_tag() == 'NOTE':
+            if child.get_tag() == "NOTE":
                 note += child.get_value()
                 for grand_child in child.get_child_elements():
-                    if grand_child.get_tag() == 'CONC':
+                    if grand_child.get_tag() == "CONC":
+                        note += grand_child.get_value()
+                    elif grand_child.get_tag() == "CONT":
                         note += grand_child.get_value()
                     else:
-                        raise Exception('Can\'t handle tag {} in NOTE'.format(grand_child.get_tag()))
-            if child.get_tag() == 'BAPM':
+                        raise Exception(
+                            "Can't handle tag {} in NOTE".format(grand_child.get_tag())
+                        )
+            if child.get_tag() == "BAPM":
                 for grand_child in child.get_child_elements():
-                    if grand_child.get_tag() == 'DATE':
+                    if grand_child.get_tag() == "DATE":
                         baptism_date = grand_child.get_value()
-                    elif grand_child.get_tag() == 'PLAC':
+                    elif grand_child.get_tag() == "PLAC":
                         baptism_place = grand_child.get_value()
+                    elif grand_child.get_tag() == "NOTE":
+                        note += grand_child.get_value()
+                    # elif grand_child.get_tag() == "CONT":
+                    #     note += grand_child.get_value()
                     else:
-                        raise Exception('Can\'t handle tag {} in BAPM'.format(grand_child.get_tag()))
+                        raise Exception(
+                            "Can't handle tag {} in BAPM".format(grand_child.get_tag())
+                        )
 
         return Individual(
-            first_names = first,
-            last_name = last,
-            sex = indi_element.get_gender(),
-            birth_date = birth_date,
-            birth_location = birth_place,
-            death_date = death_date,
-            death_location = death_place,
-            buried_date = burial_date,
-            buried_location = burial_place,
-            baptism_date = baptism_date,
-            baptism_location = baptism_place,
-            occupation = indi_element.get_occupation(),
-            note = note,
+            first_names=first,
+            last_name=last,
+            sex=indi_element.get_gender(),
+            birth_date=birth_date,
+            birth_location=birth_place,
+            death_date=death_date,
+            death_location=death_place,
+            buried_date=burial_date,
+            buried_location=burial_place,
+            baptism_date=baptism_date,
+            baptism_location=baptism_place,
+            occupation=indi_element.get_occupation(),
+            note=note,
         )
 
     def import_gedcom_file(self, gedcom_file_path):
@@ -111,23 +121,34 @@ class Command(BaseCommand):
         for individual in individuals.values():
             individual.save()
 
-        for (husband, wife, married_date, place, children, note) in families:
+        for husband, wife, married_date, place, children, note in families:
             family = Family(
-                married_date = married_date,
-                married_location = place,
-                note = note,
+                married_date=married_date,
+                married_location=place,
+                note=note,
             )
             family.save()
-            for partner in filter(lambda k: k != '', [husband, wife]):
+            for partner in filter(lambda k: k != "", [husband, wife]):
                 individuals[partner].partner_in_families.add(family)
                 individuals[partner].save()
             family.save()
 
             for child in children:
-                if individuals[child].child_in_family != None:
-                    raise Exception("Can't handle child {} being a child of two families!".format(child))
-                individuals[child].child_in_family = family
-                individuals[child].save()
+                if individuals[child].child_in_family == None:
+                    individuals[child].child_in_family = family
+                    individuals[child].save()
+                else:
+                    self.stderr.write(
+                        (
+                            "WARNING: child {} is a member of multiple families, "
+                            + "ignoring later families"
+                        ).format(child)
+                    )
 
-        self.stdout.write(self.style.SUCCESS('Successfully parsed {} individuals {} families'.format(
-            len(individuals), len(families))))
+        self.stdout.write(
+            self.style.SUCCESS(
+                "Successfully parsed {} individuals {} families".format(
+                    len(individuals), len(families)
+                )
+            )
+        )
